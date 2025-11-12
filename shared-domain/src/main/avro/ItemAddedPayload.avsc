@@ -1,0 +1,26 @@
+{
+  "type": "record",
+  "name": "ItemAddedPayload",
+  "namespace": "com.orderplatform.events.avro",
+  "doc": "Payload for ItemAdded event",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "item",
+      "type": "OrderItemAvro",
+      "doc": "The item that was added"
+    },
+    {
+      "name": "addedAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the item was added"
+    }
+  ]
+}

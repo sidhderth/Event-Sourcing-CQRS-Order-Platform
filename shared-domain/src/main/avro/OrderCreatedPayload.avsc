@@ -1,0 +1,44 @@
+{
+  "type": "record",
+  "name": "OrderCreatedPayload",
+  "namespace": "com.orderplatform.events.avro",
+  "doc": "Payload for OrderCreated event",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "customerId",
+      "type": "string",
+      "doc": "Identifier of the customer who placed the order"
+    },
+    {
+      "name": "items",
+      "type": {
+        "type": "array",
+        "items": "OrderItemAvro"
+      },
+      "doc": "List of items in the order"
+    },
+    {
+      "name": "totalAmount",
+      "type": "string",
+      "doc": "Total amount as decimal string"
+    },
+    {
+      "name": "currency",
+      "type": "string",
+      "doc": "Currency code (ISO 4217)"
+    },
+    {
+      "name": "createdAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the order was created"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "type": "record",
+  "name": "ItemRemovedPayload",
+  "namespace": "com.orderplatform.events.avro",
+  "doc": "Payload for ItemRemoved event",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "sku",
+      "type": "string",
+      "doc": "SKU of the item that was removed"
+    },
+    {
+      "name": "removedAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the item was removed"
+    }
+  ]
+}

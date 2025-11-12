@@ -1,0 +1,53 @@
+{
+  "type": "record",
+  "name": "OrderEvent",
+  "namespace": "com.orderplatform.events.avro",
+  "doc": "Envelope for all order domain events",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique identifier for this event"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "doc": "Identifier of the order aggregate"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "doc": "Type of the event (OrderCreated, OrderApproved, etc.)"
+    },
+    {
+      "name": "version",
+      "type": "long",
+      "doc": "Version of the aggregate after this event"
+    },
+    {
+      "name": "occurredAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the event occurred"
+    },
+    {
+      "name": "actor",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "User or system that triggered this event"
+    },
+    {
+      "name": "traceId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Distributed tracing correlation ID"
+    },
+    {
+      "name": "payload",
+      "type": "string",
+      "doc": "JSON-serialized event payload"
+    }
+  ]
+}

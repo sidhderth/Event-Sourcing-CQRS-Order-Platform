@@ -1,0 +1,32 @@
+{
+  "type": "record",
+  "name": "OrderApprovedPayload",
+  "namespace": "com.orderplatform.events.avro",
+  "doc": "Payload for OrderApproved event",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "approvedBy",
+      "type": "string",
+      "doc": "Identifier of the user who approved the order"
+    },
+    {
+      "name": "approvedAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the order was approved"
+    },
+    {
+      "name": "reason",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Optional reason for approval"
+    }
+  ]
+}

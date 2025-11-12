@@ -1,0 +1,32 @@
+{
+  "type": "record",
+  "name": "OrderCanceledPayload",
+  "namespace": "com.orderplatform.events.avro",
+  "doc": "Payload for OrderCanceled event",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "canceledBy",
+      "type": "string",
+      "doc": "Identifier of the user who canceled the order"
+    },
+    {
+      "name": "canceledAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the order was canceled"
+    },
+    {
+      "name": "reason",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Optional reason for cancellation"
+    }
+  ]
+}

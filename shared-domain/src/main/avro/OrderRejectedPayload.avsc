@@ -1,0 +1,31 @@
+{
+  "type": "record",
+  "name": "OrderRejectedPayload",
+  "namespace": "com.orderplatform.events.avro",
+  "doc": "Payload for OrderRejected event",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "rejectedBy",
+      "type": "string",
+      "doc": "Identifier of the user who rejected the order"
+    },
+    {
+      "name": "rejectedAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the order was rejected"
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "doc": "Reason for rejection"
+    }
+  ]
+}

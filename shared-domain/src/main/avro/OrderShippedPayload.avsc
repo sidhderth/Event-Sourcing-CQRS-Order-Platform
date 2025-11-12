@@ -1,0 +1,31 @@
+{
+  "type": "record",
+  "name": "OrderShippedPayload",
+  "namespace": "com.orderplatform.events.avro",
+  "doc": "Payload for OrderShipped event",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "Unique identifier for the order"
+    },
+    {
+      "name": "shippedAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the order was shipped"
+    },
+    {
+      "name": "trackingNumber",
+      "type": "string",
+      "doc": "Shipping tracking number"
+    },
+    {
+      "name": "carrier",
+      "type": "string",
+      "doc": "Shipping carrier name"
+    }
+  ]
+}
