@@ -40,20 +40,20 @@ The Order Command Service is responsible for handling all write operations (comm
 
 ## Features Implemented
 
-### ✅ Subtask 2.1: Spring Boot Application Setup
+### Subtask 2.1: Spring Boot Application Setup
 - Created Spring Boot application with all required dependencies
 - Configured `application.yml` with PostgreSQL, Kafka, and JPA settings
 - Set up structured JSON logging with Logstash encoder
 - Configured OpenTelemetry integration (agent-based)
 
-### ✅ Subtask 2.2: Database Schema
+### Subtask 2.2: Database Schema
 - Created Flyway migrations for all tables:
   - `V1__create_events_table.sql`: Event store with optimistic locking
   - `V2__create_snapshots_table.sql`: Aggregate snapshots
   - `V3__create_command_deduplication_table.sql`: Idempotency tracking
   - `V4__create_outbox_table.sql`: Transactional outbox pattern
 
-### ✅ Subtask 2.3: Event Store Repository
+### Subtask 2.3: Event Store Repository
 - Implemented `EventStoreRepository` with methods:
   - `append(DomainEvent)`: Persists events with optimistic locking
   - `findByAggregateId(UUID)`: Loads all events for an aggregate
@@ -61,14 +61,14 @@ The Order Command Service is responsible for handling all write operations (comm
   - `findByOccurredAtBetween(Instant, Instant)`: Time-range queries
 - Implemented `SnapshotRepository` for snapshot management
 
-### ✅ Subtask 2.4: Aggregate Loading
+### Subtask 2.4: Aggregate Loading
 - Created `AggregateLoader` that:
   - Loads snapshots for optimization
   - Replays events to reconstruct aggregate state
   - Creates snapshots every 50 events
   - Supports snapshot rebuilding for maintenance
 
-### ✅ Subtask 2.5: Command Handlers
+### Subtask 2.5: Command Handlers
 - Implemented `OrderCommandService` with handlers for:
   - `createOrder`: Creates new orders with idempotency support
   - `approveOrder`: Approves orders
@@ -79,7 +79,7 @@ The Order Command Service is responsible for handling all write operations (comm
   - `removeItem`: Removes items from orders
 - All handlers use transactional outbox pattern
 
-### ✅ Subtask 2.6: Kafka Producer
+### Subtask 2.6: Kafka Producer
 - Implemented `OutboxProcessor` that:
   - Polls outbox table for PENDING events
   - Publishes to Kafka with transactional producer
@@ -90,7 +90,7 @@ The Order Command Service is responsible for handling all write operations (comm
   - `acks=all`
   - `transactional.id` configured
 
-### ✅ Subtask 2.7: REST Controllers
+### Subtask 2.7: REST Controllers
 - Created `OrderCommandController` with endpoints:
   - `POST /api/v1/orders`: Create order
   - `POST /api/v1/orders/{id}/approve`: Approve order
@@ -101,7 +101,7 @@ The Order Command Service is responsible for handling all write operations (comm
   - `DELETE /api/v1/orders/{id}/items/{sku}`: Remove item
 - All endpoints use `@Valid` for input validation
 
-### ✅ Subtask 2.8: Exception Handling
+### Subtask 2.8: Exception Handling
 - Implemented `GlobalExceptionHandler` with RFC 7807 Problem Details:
   - `MethodArgumentNotValidException` → 400 Bad Request
   - `ConstraintViolationException` → 400 Bad Request
@@ -110,7 +110,7 @@ The Order Command Service is responsible for handling all write operations (comm
   - `Exception` → 500 Internal Server Error
 - All responses include trace IDs for debugging
 
-### ✅ Subtask 2.9: Security Configuration
+### Subtask 2.9: Security Configuration
 - Configured Spring Security as OAuth2 resource server
 - JWT validation against Keycloak
 - Role extraction from `realm_access.roles` claim
