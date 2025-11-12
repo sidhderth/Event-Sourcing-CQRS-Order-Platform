@@ -72,22 +72,16 @@ Full local development environment with docker-compose will be available in futu
 
 ## Development Status
 
-✅ Task 1: Project structure and shared infrastructure
+Task 1: Project structure and shared infrastructure
 - Maven multi-module project with Java 21 and Spring Boot 3.x
 - Shared domain models (Order aggregate, Money, OrderItem)
 - Command DTOs with validation
 - Domain events
 - Avro schemas for event serialization
 
-🔄 Next: Implement Order Command Service
+Next: Implement Order Command Service
 
 ## Documentation
 
 - [Shared Domain README](shared-domain/README.md)
-- [Requirements](.kiro/specs/event-sourced-order-platform/requirements.md)
-- [Design](.kiro/specs/event-sourced-order-platform/design.md)
-- [Tasks](.kiro/specs/event-sourced-order-platform/tasks.md)
 
-## License
-
-Copyright © 2025 Order Platform Team
