@@ -11,7 +11,44 @@
     },
     {
       "name": "item",
-      "type": "OrderItemAvro",
+      "type": {
+        "type": "record",
+        "name": "OrderItemAvro",
+        "namespace": "com.orderplatform.events.avro",
+        "doc": "Represents an item in an order",
+        "fields": [
+          {
+            "name": "sku",
+            "type": "string",
+            "doc": "Stock keeping unit identifier"
+          },
+          {
+            "name": "productName",
+            "type": "string",
+            "doc": "Name of the product"
+          },
+          {
+            "name": "quantity",
+            "type": "int",
+            "doc": "Quantity ordered"
+          },
+          {
+            "name": "unitPrice",
+            "type": "string",
+            "doc": "Unit price as decimal string"
+          },
+          {
+            "name": "lineTotal",
+            "type": "string",
+            "doc": "Line total as decimal string"
+          },
+          {
+            "name": "currency",
+            "type": "string",
+            "doc": "Currency code (ISO 4217)"
+          }
+        ]
+      },
       "doc": "The item that was added"
     },
     {
