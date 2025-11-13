@@ -1,0 +1,83 @@
+spring:
+  application:
+    name: order-query-service
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    streams:
+      application-id: order-query-service
+      properties:
+        processing.guarantee: exactly_once_v2
+        num.stream.threads: 3
+        commit.interval.ms: 1000
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+        schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+        state.dir: ${KAFKA_STREAMS_STATE_DIR:/tmp/kafka-streams}
+        replication.factor: ${KAFKA_REPLICATION_FACTOR:1}
+        min.insync.replicas: ${KAFKA_MIN_INSYNC_REPLICAS:1}
+    properties:
+      schema.registry.url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/order-platform}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8080/realms/order-platform/protocol/openid-connect/certs}
+
+elasticsearch:
+  host: ${ELASTICSEARCH_HOST:localhost}
+  port: ${ELASTICSEARCH_PORT:9200}
+  username: ${ELASTICSEARCH_USERNAME:elastic}
+  password: ${ELASTICSEARCH_PASSWORD:changeme}
+  connection-timeout: 5000
+  socket-timeout: 60000
+
+# Maintenance mode for event replay
+maintenance:
+  mode:
+    enabled: ${MAINTENANCE_MODE:false}
+
+# Kafka topics
+kafka:
+  topics:
+    order-events: order-events
+
+# OpenTelemetry configuration
+otel:
+  service:
+    name: ${OTEL_SERVICE_NAME:order-query-service}
+  traces:
+    exporter: ${OTEL_TRACES_EXPORTER:otlp}
+  metrics:
+    exporter: ${OTEL_METRICS_EXPORTER:prometheus}
+  exporter:
+    otlp:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.orderplatform: DEBUG
+    org.apache.kafka.streams: INFO
+    co.elastic.clients: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
