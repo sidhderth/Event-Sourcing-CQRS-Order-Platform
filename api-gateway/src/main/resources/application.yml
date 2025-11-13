@@ -1,0 +1,99 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  
+  cloud:
+    gateway:
+      routes:
+        # Command Service Routes
+        - id: order-command-service
+          uri: ${COMMAND_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/orders/**
+            - Method=POST,PUT,DELETE
+          filters:
+            - StripPrefix=0
+        
+        # Query Service Routes
+        - id: order-query-service
+          uri: ${QUERY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/orders/**
+            - Method=GET
+          filters:
+            - StripPrefix=0
+        
+        # Query Service Search Route
+        - id: order-query-search
+          uri: ${QUERY_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/orders/search
+            - Method=GET
+          filters:
+            - StripPrefix=0
+      
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+            methods: GET
+            backoff:
+              firstBackoff: 50ms
+              maxBackoff: 500ms
+              factor: 2
+              basedOnPreviousValue: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/order-platform}
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.orderplatform.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# CORS Configuration
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
+
+# Rate Limiting Configuration
+rate-limit:
+  requests-per-minute: ${RATE_LIMIT_RPM:100}
