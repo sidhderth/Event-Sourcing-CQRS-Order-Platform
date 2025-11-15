@@ -1,4 +1,4 @@
-# Multi-stage build for Order Query Service
+# Multi-stage build for API Gateway
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
@@ -6,18 +6,16 @@ WORKDIR /app
 # Copy Maven wrapper and pom files
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
-COPY shared-domain/pom.xml ./shared-domain/
-COPY order-query-service/pom.xml ./order-query-service/
+COPY api-gateway/pom.xml ./api-gateway/
 
 # Download dependencies
-RUN ./mvnw dependency:go-offline -pl shared-domain,order-query-service
+RUN ./mvnw dependency:go-offline -pl api-gateway
 
 # Copy source code
-COPY shared-domain/src ./shared-domain/src
-COPY order-query-service/src ./order-query-service/src
+COPY api-gateway/src ./api-gateway/src
 
 # Build the application
-RUN ./mvnw clean package -pl shared-domain,order-query-service -DskipTests
+RUN ./mvnw clean package -pl api-gateway -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
@@ -35,7 +33,7 @@ ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/release
 RUN chmod 644 /app/opentelemetry-javaagent.jar
 
 # Copy the built artifact from builder stage
-COPY --from=builder /app/order-query-service/target/*.jar /app/order-query-service.jar
+COPY --from=builder /app/api-gateway/target/*.jar /app/api-gateway.jar
 
 # Change ownership
 RUN chown -R appuser:appgroup /app
@@ -44,19 +42,17 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 # Expose port
-EXPOSE 8082
+EXPOSE 8080
 
-# Set JVM options (more memory for RocksDB state stores)
-ENV JAVA_OPTS="-Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
+# Set JVM options
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
 
 # Set OpenTelemetry options
-ENV OTEL_SERVICE_NAME=order-query-service
+ENV OTEL_SERVICE_NAME=api-gateway
 ENV OTEL_TRACES_EXPORTER=otlp
 ENV OTEL_METRICS_EXPORTER=prometheus
 ENV OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
 ENV OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-ENV OTEL_INSTRUMENTATION_KAFKA_ENABLED=true
-ENV OTEL_INSTRUMENTATION_ELASTICSEARCH_ENABLED=true
 
 # Run the application with OpenTelemetry agent
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -javaagent:/app/opentelemetry-javaagent.jar -jar /app/order-query-service.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -javaagent:/app/opentelemetry-javaagent.jar -jar /app/api-gateway.jar"]
