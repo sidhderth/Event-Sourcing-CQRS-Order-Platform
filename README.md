@@ -2,7 +2,7 @@
 
 A production-grade, cloud-native microservices system implementing CQRS and Event Sourcing patterns for order management. This platform demonstrates enterprise-level architecture with exactly-once semantics, distributed tracing, and comprehensive observability.
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 This platform separates write operations (commands) from read operations (queries), using Kafka as the event backbone and maintaining separate data stores optimized for each concern.
 
@@ -24,7 +24,7 @@ This platform separates write operations (commands) from read operations (querie
 - **Containerization**: Docker, Docker Compose
 - **Orchestration**: Kubernetes, Helm, Argo CD (production)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 event-sourced-order-platform/
@@ -59,7 +59,7 @@ event-sourced-order-platform/
         └── local.postman_environment.json
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -158,7 +158,7 @@ make status
 
 See [docker/README.md](docker/README.md) for detailed documentation.
 
-## 🔑 Key Features
+## Key Features
 
 ### Event Sourcing
 - All state changes captured as immutable events in PostgreSQL
@@ -201,7 +201,7 @@ See [docker/README.md](docker/README.md) for detailed documentation.
 - Schema Registry for centralized schema management
 - Versioned event schemas
 
-## 📡 API Usage
+## API Usage
 
 ### Authentication
 
@@ -251,7 +251,7 @@ curl -X GET "http://localhost:8080/api/v1/orders?status=APPROVED&page=0&size=20"
 4. Run "Get Access Token (Admin)" to authenticate
 5. Use other requests (token is automatically applied)
 
-## 🔍 Monitoring & Debugging
+## Monitoring & Debugging
 
 ### Access Points
 
@@ -304,7 +304,7 @@ curl -X GET "http://localhost:9200/orders_v1/_search?pretty" \
   -d '{"query": {"match_all": {}}}'
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run unit tests
@@ -321,52 +321,7 @@ mvn test
 mvn jacoco:report
 ```
 
-## 📚 Documentation
+## Documentation
 
 - [Docker Environment Guide](docker/README.md) - Complete local development setup
 - [Shared Domain README](shared-domain/README.md) - Domain models and events
-- [Design Document](.kiro/specs/event-sourced-order-platform/design.md) - Architecture details
-- [Requirements](.kiro/specs/event-sourced-order-platform/requirements.md) - Feature requirements
-- [Tasks](.kiro/specs/event-sourced-order-platform/tasks.md) - Implementation plan
-
-## 🏗️ Development Status
-
-### ✅ Completed
-
-- [x] Task 1: Project structure and shared domain
-- [x] Task 6: Local development environment with Docker Compose
-
-### 🚧 In Progress
-
-- [ ] Task 2: Order Command Service implementation
-- [ ] Task 3: Order Query Service implementation
-- [ ] Task 4: API Gateway implementation
-- [ ] Task 5: Keycloak integration and security
-
-### 📋 Planned
-
-- [ ] Task 7: Integration tests with Testcontainers
-- [ ] Task 8: Grafana dashboards
-- [ ] Task 9: Kubernetes deployment manifests
-- [ ] Task 10: CI/CD pipeline
-
-## 🤝 Contributing
-
-This is a demonstration project showcasing enterprise architecture patterns. Contributions are welcome!
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Inspired by enterprise event sourcing patterns
-- Built with Spring Boot and Apache Kafka ecosystems
-- Observability patterns from OpenTelemetry community
-
