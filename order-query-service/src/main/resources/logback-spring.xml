@@ -2,12 +2,12 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     
-    <springProperty scope="context" name="serviceName" source="spring.application.name" defaultValue="order-command-service"/>
+    <springProperty scope="context" name="serviceName" source="spring.application.name" defaultValue="order-query-service"/>
     
     <!-- Console appender with JSON formatting -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"service":"${serviceName}","component":"command","layer":"application"}</customFields>
+            <customFields>{"service":"${serviceName}","component":"query","layer":"application"}</customFields>
             <!-- Include OpenTelemetry trace context -->
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
@@ -15,9 +15,10 @@
             <includeMdcKeyName>orderId</includeMdcKeyName>
             <includeMdcKeyName>customerId</includeMdcKeyName>
             <includeMdcKeyName>version</includeMdcKeyName>
-            <includeMdcKeyName>commandType</includeMdcKeyName>
-            <includeMdcKeyName>aggregateId</includeMdcKeyName>
-            <includeMdcKeyName>eventType</includeMdcKeyName>
+            <!-- Include Kafka Streams context -->
+            <includeMdcKeyName>partition</includeMdcKeyName>
+            <includeMdcKeyName>offset</includeMdcKeyName>
+            <includeMdcKeyName>topic</includeMdcKeyName>
             <!-- Timestamp format -->
             <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSS'Z'</timestampPattern>
             <timeZone>UTC</timeZone>
@@ -32,19 +33,17 @@
     <!-- Application-specific loggers -->
     <logger name="com.orderplatform" level="DEBUG"/>
     <logger name="org.springframework.kafka" level="INFO"/>
-    <logger name="org.hibernate" level="INFO"/>
-    <logger name="org.springframework.jdbc" level="INFO"/>
-    <logger name="org.flywaydb" level="INFO"/>
+    <logger name="org.apache.kafka.streams" level="INFO"/>
+    <logger name="org.elasticsearch.client" level="INFO"/>
     
     <!-- Profile-specific configuration -->
     <springProfile name="dev,local">
         <logger name="com.orderplatform" level="DEBUG"/>
-        <logger name="org.hibernate.SQL" level="DEBUG"/>
-        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+        <logger name="org.apache.kafka.streams" level="DEBUG"/>
     </springProfile>
     
     <springProfile name="prod">
         <logger name="com.orderplatform" level="INFO"/>
-        <logger name="org.hibernate" level="WARN"/>
+        <logger name="org.apache.kafka.streams" level="WARN"/>
     </springProfile>
 </configuration>

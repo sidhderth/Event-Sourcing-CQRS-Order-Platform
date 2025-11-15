@@ -352,8 +352,15 @@ services:
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/order-platform
       COMMAND_SERVICE_URL: http://order-command-service:8081
       QUERY_SERVICE_URL: http://order-query-service:8082
+      # OpenTelemetry Configuration
       OTEL_SERVICE_NAME: api-gateway
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: none
+      OTEL_INSTRUMENTATION_SPRING_WEBFLUX_ENABLED: "true"
+      OTEL_INSTRUMENTATION_SPRING_WEB_ENABLED: "true"
+      # Actuator Configuration
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
       MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
     depends_on:
@@ -392,8 +399,16 @@ services:
       SPRING_KAFKA_PRODUCER_TRANSACTION_ID_PREFIX: order-command-
       KAFKA_TOPIC_ORDER_EVENTS: order-events
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/order-platform
+      # OpenTelemetry Configuration
       OTEL_SERVICE_NAME: order-command-service
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: none
+      OTEL_INSTRUMENTATION_JDBC_ENABLED: "true"
+      OTEL_INSTRUMENTATION_KAFKA_ENABLED: "true"
+      OTEL_INSTRUMENTATION_SPRING_WEB_ENABLED: "true"
+      # Actuator Configuration
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
       MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
     depends_on:
@@ -440,8 +455,15 @@ services:
       ELASTICSEARCH_INDEX_ORDERS: orders_v1
       KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/order-platform
       MAINTENANCE_MODE: "false"
+      # OpenTelemetry Configuration
       OTEL_SERVICE_NAME: order-query-service
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: none
+      OTEL_INSTRUMENTATION_KAFKA_ENABLED: "true"
+      OTEL_INSTRUMENTATION_SPRING_WEB_ENABLED: "true"
+      # Actuator Configuration
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
       MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
     depends_on:

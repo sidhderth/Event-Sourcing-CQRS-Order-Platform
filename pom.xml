@@ -46,6 +46,7 @@
         <!-- Observability -->
         <opentelemetry.version>1.32.0</opentelemetry.version>
         <micrometer.version>1.12.0</micrometer.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         
         <!-- Utilities -->
         <lombok.version>1.18.30</lombok.version>
@@ -135,6 +136,13 @@
                 <groupId>co.elastic.clients</groupId>
                 <artifactId>elasticsearch-java</artifactId>
                 <version>${elasticsearch.version}</version>
+            </dependency>
+            
+            <!-- Observability - Structured Logging -->
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
             </dependency>
             
             <!-- Lombok -->
