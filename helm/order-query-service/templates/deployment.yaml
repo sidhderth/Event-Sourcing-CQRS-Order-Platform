@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "order-query-service.fullname" . }}
+  labels:
+    {{- include "order-query-service.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "order-query-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "order-query-service.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "order-query-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.config.springProfiles }}
+        - name: LOGGING_LEVEL_ROOT
+          value: {{ .Values.config.logLevel }}
+        # Kafka Streams configuration
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-query-service.fullname" . }}
+              key: kafka.bootstrap.servers
+        - name: SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-query-service.fullname" . }}
+              key: kafka.schema.registry.url
+        - name: SPRING_KAFKA_STREAMS_APPLICATION_ID
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-query-service.fullname" . }}
+              key: kafka.application.id
+        - name: SPRING_KAFKA_STREAMS_PROPERTIES_PROCESSING_GUARANTEE
+          value: {{ .Values.config.kafkaProcessingGuarantee }}
+        - name: SPRING_KAFKA_STREAMS_PROPERTIES_NUM_STREAM_THREADS
+          value: {{ .Values.config.kafkaNumStreamThreads | quote }}
+        - name: SPRING_KAFKA_STREAMS_PROPERTIES_COMMIT_INTERVAL_MS
+          value: {{ .Values.config.kafkaCommitIntervalMs | quote }}
+        - name: SPRING_KAFKA_STREAMS_STATE_DIR
+          value: {{ .Values.config.kafkaStateDir }}
+        # Elasticsearch configuration
+        - name: SPRING_ELASTICSEARCH_URIS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-query-service.fullname" . }}
+              key: elasticsearch.hosts
+        - name: SPRING_ELASTICSEARCH_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-query-service.fullname" . }}
+              key: elasticsearch.username
+        - name: SPRING_ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "order-query-service.fullname" . }}
+              key: elasticsearch-password
+        - name: ELASTICSEARCH_INDEX_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-query-service.fullname" . }}
+              key: elasticsearch.index.name
+        - name: ELASTICSEARCH_NUMBER_OF_SHARDS
+          value: {{ .Values.config.elasticsearchNumberOfShards | quote }}
+        - name: ELASTICSEARCH_NUMBER_OF_REPLICAS
+          value: {{ .Values.config.elasticsearchNumberOfReplicas | quote }}
+        - name: ELASTICSEARCH_REFRESH_INTERVAL
+          value: {{ .Values.config.elasticsearchRefreshInterval | quote }}
+        # Keycloak configuration
+        - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+          value: "{{ .Values.config.keycloakUrl }}/realms/{{ .Values.config.keycloakRealm }}"
+        # Maintenance mode
+        - name: MAINTENANCE_MODE
+          value: {{ .Values.config.maintenanceMode | quote }}
+        # OpenTelemetry configuration
+        - name: OTEL_SERVICE_NAME
+          value: {{ .Values.observability.otelServiceName }}
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: {{ .Values.observability.otelExporterEndpoint }}
+        - name: OTEL_TRACES_EXPORTER
+          value: {{ if .Values.observability.otelTracesEnabled }}"otlp"{{ else }}"none"{{ end }}
+        - name: OTEL_METRICS_EXPORTER
+          value: {{ if .Values.observability.otelMetricsEnabled }}"prometheus"{{ else }}"none"{{ end }}
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/opt/opentelemetry-javaagent.jar"
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 12 }}
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 12 }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        {{- if .Values.persistence.enabled }}
+        - name: state-store
+          mountPath: {{ .Values.config.kafkaStateDir }}
+        {{- end }}
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      {{- if .Values.persistence.enabled }}
+      - name: state-store
+        persistentVolumeClaim:
+          claimName: {{ include "order-query-service.fullname" . }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,54 @@
+# Staging environment values for Order Command Service
+replicaCount: 2
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 300m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+config:
+  logLevel: INFO
+  
+  # PostgreSQL configuration
+  postgresHost: postgresql
+  postgresPort: 5432
+  postgresDatabase: orderdb_staging
+  postgresUsername: orderuser
+  postgresMaxPoolSize: 15
+  postgresMinIdle: 3
+  postgresConnectionTimeout: 30000
+  
+  # Kafka configuration
+  kafkaBootstrapServers: kafka:9092
+  kafkaSchemaRegistryUrl: http://schema-registry:8081
+  kafkaTransactionalIdPrefix: order-command-service-staging
+  kafkaEnableIdempotence: true
+  kafkaAcks: all
+  kafkaRetries: 2147483647
+  kafkaMaxInFlightRequests: 5
+  
+  # Event store configuration
+  snapshotInterval: 50
+  
+  # Keycloak configuration
+  keycloakUrl: http://keycloak:8080
+  keycloakRealm: order-platform
+
+observability:
+  otelServiceName: order-command-service-staging
+  otelExporterEndpoint: http://otel-collector:4317
+  otelTracesEnabled: true
+  otelMetricsEnabled: true

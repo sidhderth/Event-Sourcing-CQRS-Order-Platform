@@ -1,0 +1,59 @@
+# Staging environment values for Order Query Service
+replicaCount: 2
+
+resources:
+  limits:
+    cpu: 1500m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+config:
+  logLevel: INFO
+  
+  # Kafka Streams configuration
+  kafkaBootstrapServers: kafka:9092
+  kafkaSchemaRegistryUrl: http://schema-registry:8081
+  kafkaApplicationId: order-query-service-staging
+  kafkaProcessingGuarantee: exactly_once_v2
+  kafkaNumStreamThreads: 2
+  kafkaCommitIntervalMs: 1000
+  kafkaStateDir: /var/kafka-streams
+  
+  # Elasticsearch configuration
+  elasticsearchHosts: http://elasticsearch:9200
+  elasticsearchUsername: elastic
+  elasticsearchIndexName: orders_v1_staging
+  elasticsearchNumberOfShards: 2
+  elasticsearchNumberOfReplicas: 1
+  elasticsearchRefreshInterval: 1s
+  
+  # Keycloak configuration
+  keycloakUrl: http://keycloak:8080
+  keycloakRealm: order-platform
+  
+  # Maintenance mode
+  maintenanceMode: false
+
+observability:
+  otelServiceName: order-query-service-staging
+  otelExporterEndpoint: http://otel-collector:4317
+  otelTracesEnabled: true
+  otelMetricsEnabled: true

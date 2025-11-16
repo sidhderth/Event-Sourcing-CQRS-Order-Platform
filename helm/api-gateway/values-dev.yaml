@@ -1,0 +1,31 @@
+# Development environment values for API Gateway
+replicaCount: 1
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+
+podDisruptionBudget:
+  enabled: false
+
+config:
+  logLevel: DEBUG
+  keycloakUrl: http://keycloak:8080
+  keycloakRealm: order-platform
+  commandServiceUrl: http://order-command-service:8080
+  queryServiceUrl: http://order-query-service:8080
+  rateLimitRequestsPerMinute: 1000
+  corsAllowedOrigins: "http://localhost:3000,http://localhost:8080"
+
+observability:
+  otelServiceName: api-gateway-dev
+  otelExporterEndpoint: http://otel-collector:4317
+  otelTracesEnabled: true
+  otelMetricsEnabled: true

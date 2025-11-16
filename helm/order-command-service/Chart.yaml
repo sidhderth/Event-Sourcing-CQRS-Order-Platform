@@ -1,0 +1,12 @@
+apiVersion: v2
+name: order-command-service
+description: Order Command Service for Event-Sourced Order Platform - handles write operations and publishes domain events
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - order-command
+  - event-sourcing
+  - cqrs
+maintainers:
+  - name: Order Platform Team

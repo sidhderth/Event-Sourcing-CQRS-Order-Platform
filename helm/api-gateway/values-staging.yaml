@@ -1,0 +1,55 @@
+# Staging environment values for API Gateway
+replicaCount: 2
+
+resources:
+  limits:
+    cpu: 750m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+config:
+  logLevel: INFO
+  keycloakUrl: http://keycloak:8080
+  keycloakRealm: order-platform
+  commandServiceUrl: http://order-command-service:8080
+  queryServiceUrl: http://order-query-service:8080
+  rateLimitRequestsPerMinute: 200
+  corsAllowedOrigins: "https://staging.orderplatform.com"
+
+observability:
+  otelServiceName: api-gateway-staging
+  otelExporterEndpoint: http://otel-collector:4317
+  otelTracesEnabled: true
+  otelMetricsEnabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: api-staging.orderplatform.com
+    paths:
+    - path: /
+      pathType: Prefix
+  tls:
+    enabled: true
+    secretName: order-platform-staging-tls
+  certManager:
+    enabled: true
+    clusterIssuer: letsencrypt-staging
+  nginx:
+    enabled: true
+    rateLimit: "200"
+    sslRedirect: "true"
+    forceSslRedirect: "true"

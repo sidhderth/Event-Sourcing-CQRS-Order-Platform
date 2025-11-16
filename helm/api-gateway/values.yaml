@@ -1,0 +1,153 @@
+replicaCount: 3
+
+image:
+  repository: order-platform/api-gateway
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/actuator/prometheus"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  initialDelaySeconds: 20
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - api-gateway
+        topologyKey: kubernetes.io/hostname
+
+config:
+  springProfiles: kubernetes
+  logLevel: INFO
+  keycloakUrl: http://keycloak:8080
+  keycloakRealm: order-platform
+  commandServiceUrl: http://order-command-service:8080
+  queryServiceUrl: http://order-query-service:8080
+  rateLimitRequestsPerMinute: 100
+  corsAllowedOrigins: "*"
+  
+observability:
+  otelServiceName: api-gateway
+  otelExporterEndpoint: http://otel-collector:4317
+  otelTracesEnabled: true
+  otelMetricsEnabled: true
+
+secrets:
+  keycloakClientSecret: ""
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+  - host: api.orderplatform.com
+    paths:
+    - path: /
+      pathType: Prefix
+  tls:
+    enabled: true
+    secretName: order-platform-tls
+  certManager:
+    enabled: true
+    clusterIssuer: letsencrypt-prod
+  nginx:
+    enabled: true
+    rateLimit: "100"
+    sslRedirect: "true"
+    forceSslRedirect: "true"
+    proxyBodySize: "10m"
+    proxyConnectTimeout: "60"
+    proxySendTimeout: "60"
+    proxyReadTimeout: "60"
+
+networkPolicy:
+  enabled: false
+  ingress:
+    ingressControllerNamespaceSelector:
+      name: ingress-nginx
+    ingressControllerPodSelector:
+      app.kubernetes.io/name: ingress-nginx
+    allowPrometheus: true
+    prometheusNamespaceSelector:
+      name: monitoring
+    prometheusPodSelector:
+      app: prometheus
+  egress:
+    keycloakPodSelector:
+      app: keycloak
+    allowOtelCollector: true
+    otelCollectorPodSelector:
+      app: otel-collector

@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "order-command-service.fullname" . }}
+  labels:
+    {{- include "order-command-service.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "order-command-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "order-command-service.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "order-command-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.config.springProfiles }}
+        - name: LOGGING_LEVEL_ROOT
+          value: {{ .Values.config.logLevel }}
+        # PostgreSQL configuration
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://{{ .Values.config.postgresHost }}:{{ .Values.config.postgresPort }}/{{ .Values.config.postgresDatabase }}"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-command-service.fullname" . }}
+              key: postgres.username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "order-command-service.fullname" . }}
+              key: postgres-password
+        - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+          value: {{ .Values.config.postgresMaxPoolSize | quote }}
+        - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
+          value: {{ .Values.config.postgresMinIdle | quote }}
+        - name: SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT
+          value: {{ .Values.config.postgresConnectionTimeout | quote }}
+        # Kafka configuration
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-command-service.fullname" . }}
+              key: kafka.bootstrap.servers
+        - name: SPRING_KAFKA_PROPERTIES_SCHEMA_REGISTRY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-command-service.fullname" . }}
+              key: kafka.schema.registry.url
+        - name: SPRING_KAFKA_PRODUCER_TRANSACTIONAL_ID
+          value: "{{ .Values.config.kafkaTransactionalIdPrefix }}-{{ .Release.Name }}"
+        - name: SPRING_KAFKA_PRODUCER_PROPERTIES_ENABLE_IDEMPOTENCE
+          value: {{ .Values.config.kafkaEnableIdempotence | quote }}
+        - name: SPRING_KAFKA_PRODUCER_ACKS
+          value: {{ .Values.config.kafkaAcks | quote }}
+        - name: SPRING_KAFKA_PRODUCER_PROPERTIES_RETRIES
+          value: {{ .Values.config.kafkaRetries | quote }}
+        - name: SPRING_KAFKA_PRODUCER_PROPERTIES_MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION
+          value: {{ .Values.config.kafkaMaxInFlightRequests | quote }}
+        # Event store configuration
+        - name: EVENT_STORE_SNAPSHOT_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "order-command-service.fullname" . }}
+              key: snapshot.interval
+        # Keycloak configuration
+        - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+          value: "{{ .Values.config.keycloakUrl }}/realms/{{ .Values.config.keycloakRealm }}"
+        # OpenTelemetry configuration
+        - name: OTEL_SERVICE_NAME
+          value: {{ .Values.observability.otelServiceName }}
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: {{ .Values.observability.otelExporterEndpoint }}
+        - name: OTEL_TRACES_EXPORTER
+          value: {{ if .Values.observability.otelTracesEnabled }}"otlp"{{ else }}"none"{{ end }}
+        - name: OTEL_METRICS_EXPORTER
+          value: {{ if .Values.observability.otelMetricsEnabled }}"prometheus"{{ else }}"none"{{ end }}
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/opt/opentelemetry-javaagent.jar"
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 12 }}
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 12 }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

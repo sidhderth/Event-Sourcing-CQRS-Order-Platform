@@ -1,0 +1,59 @@
+# Production environment values for Order Query Service
+replicaCount: 3
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 20Gi
+
+config:
+  logLevel: INFO
+  
+  # Kafka Streams configuration
+  kafkaBootstrapServers: kafka:9092
+  kafkaSchemaRegistryUrl: http://schema-registry:8081
+  kafkaApplicationId: order-query-service-prod
+  kafkaProcessingGuarantee: exactly_once_v2
+  kafkaNumStreamThreads: 3
+  kafkaCommitIntervalMs: 1000
+  kafkaStateDir: /var/kafka-streams
+  
+  # Elasticsearch configuration
+  elasticsearchHosts: http://elasticsearch:9200
+  elasticsearchUsername: elastic
+  elasticsearchIndexName: orders_v1
+  elasticsearchNumberOfShards: 3
+  elasticsearchNumberOfReplicas: 1
+  elasticsearchRefreshInterval: 1s
+  
+  # Keycloak configuration
+  keycloakUrl: http://keycloak:8080
+  keycloakRealm: order-platform
+  
+  # Maintenance mode
+  maintenanceMode: false
+
+observability:
+  otelServiceName: order-query-service-prod
+  otelExporterEndpoint: http://otel-collector:4317
+  otelTracesEnabled: true
+  otelMetricsEnabled: true

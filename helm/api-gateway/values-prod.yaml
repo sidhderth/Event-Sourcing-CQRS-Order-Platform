@@ -1,0 +1,55 @@
+# Production environment values for API Gateway
+replicaCount: 3
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+config:
+  logLevel: INFO
+  keycloakUrl: http://keycloak:8080
+  keycloakRealm: order-platform
+  commandServiceUrl: http://order-command-service:8080
+  queryServiceUrl: http://order-query-service:8080
+  rateLimitRequestsPerMinute: 100
+  corsAllowedOrigins: "https://orderplatform.com,https://www.orderplatform.com"
+
+observability:
+  otelServiceName: api-gateway-prod
+  otelExporterEndpoint: http://otel-collector:4317
+  otelTracesEnabled: true
+  otelMetricsEnabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: api.orderplatform.com
+    paths:
+    - path: /
+      pathType: Prefix
+  tls:
+    enabled: true
+    secretName: order-platform-tls
+  certManager:
+    enabled: true
+    clusterIssuer: letsencrypt-prod
+  nginx:
+    enabled: true
+    rateLimit: "100"
+    sslRedirect: "true"
+    forceSslRedirect: "true"

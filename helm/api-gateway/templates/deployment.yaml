@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "api-gateway.fullname" . }}
+  labels:
+    {{- include "api-gateway.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "api-gateway.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "api-gateway.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "api-gateway.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.config.springProfiles }}
+        - name: LOGGING_LEVEL_ROOT
+          value: {{ .Values.config.logLevel }}
+        - name: KEYCLOAK_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "api-gateway.fullname" . }}
+              key: keycloak.url
+        - name: KEYCLOAK_REALM
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "api-gateway.fullname" . }}
+              key: keycloak.realm
+        - name: KEYCLOAK_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "api-gateway.fullname" . }}
+              key: keycloak-client-secret
+        - name: COMMAND_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "api-gateway.fullname" . }}
+              key: command.service.url
+        - name: QUERY_SERVICE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "api-gateway.fullname" . }}
+              key: query.service.url
+        - name: RATE_LIMIT_REQUESTS_PER_MINUTE
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "api-gateway.fullname" . }}
+              key: rate.limit.requests.per.minute
+        - name: CORS_ALLOWED_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "api-gateway.fullname" . }}
+              key: cors.allowed.origins
+        - name: OTEL_SERVICE_NAME
+          value: {{ .Values.observability.otelServiceName }}
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: {{ .Values.observability.otelExporterEndpoint }}
+        - name: OTEL_TRACES_EXPORTER
+          value: {{ if .Values.observability.otelTracesEnabled }}"otlp"{{ else }}"none"{{ end }}
+        - name: OTEL_METRICS_EXPORTER
+          value: {{ if .Values.observability.otelMetricsEnabled }}"prometheus"{{ else }}"none"{{ end }}
+        - name: JAVA_TOOL_OPTIONS
+          value: "-javaagent:/opt/opentelemetry-javaagent.jar"
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 12 }}
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 12 }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
